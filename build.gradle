@@ -28,6 +28,7 @@ subprojects {
 
         annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
         implementation "org.mapstruct:mapstruct:$mapstructVersion"
+        implementation "org.springframework:spring-aspects:$springVersion"
     }
     test {
         useJUnitPlatform()

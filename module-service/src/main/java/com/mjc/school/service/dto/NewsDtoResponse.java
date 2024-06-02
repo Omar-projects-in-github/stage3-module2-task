@@ -1,12 +1,9 @@
-package com.mjc.school.repository.model;
-
-import org.springframework.stereotype.Component;
+package com.mjc.school.service.dto;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-@Component
-public class NewsModel implements BaseEntity<Long> {
+public class NewsDtoResponse {
     private Long id;
     private String title;
     private String content;
@@ -14,17 +11,16 @@ public class NewsModel implements BaseEntity<Long> {
     private LocalDateTime lastUpdateDate;
     private Long authorId;
 
-    public NewsModel() {
+    public NewsDtoResponse() {
     }
 
-    public NewsModel(String title, String content, Long authorId) {
+    public NewsDtoResponse(String title, String content, Long authorId) {
         this.title = title;
         this.content = content;
         this.authorId = authorId;
     }
 
-    public NewsModel(Long id, String title, String content, LocalDateTime createDate,
-                     LocalDateTime lastUpdateDate, Long authorId) {
+    public NewsDtoResponse(Long id, String title, String content, LocalDateTime createDate, LocalDateTime lastUpdateDate, Long authorId) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -82,8 +78,21 @@ public class NewsModel implements BaseEntity<Long> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NewsDtoResponse that = (NewsDtoResponse) o;
+        return Objects.equals(id, that.id) && Objects.equals(title, that.title) && Objects.equals(content, that.content) && Objects.equals(createDate, that.createDate) && Objects.equals(lastUpdateDate, that.lastUpdateDate) && Objects.equals(authorId, that.authorId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, content, createDate, lastUpdateDate, authorId);
+    }
+
+    @Override
     public String toString() {
-        return "NewsModel{" +
+        return "NewsDtoResponse{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
@@ -91,18 +100,5 @@ public class NewsModel implements BaseEntity<Long> {
                 ", lastUpdateDate=" + lastUpdateDate +
                 ", authorId=" + authorId +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NewsModel newsModel = (NewsModel) o;
-        return Objects.equals(id, newsModel.id) && Objects.equals(title, newsModel.title) && Objects.equals(content, newsModel.content) && Objects.equals(createDate, newsModel.createDate) && Objects.equals(lastUpdateDate, newsModel.lastUpdateDate) && Objects.equals(authorId, newsModel.authorId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, title, content, createDate, lastUpdateDate, authorId);
     }
 }

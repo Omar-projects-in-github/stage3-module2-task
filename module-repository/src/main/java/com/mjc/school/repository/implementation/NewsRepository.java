@@ -6,12 +6,15 @@ import com.mjc.school.repository.util.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.Comparator;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
 public class NewsRepository implements BaseRepository<NewsModel, Long> {
+    private final DateTimeFormatter MY_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private final DataSource dataSource;
 
     @Autowired
@@ -25,48 +28,60 @@ public class NewsRepository implements BaseRepository<NewsModel, Long> {
     }
 
     @Override
-    public Optional<NewsModel> readById(Long newsId) {
-        return dataSource.getNews().stream()
-                .filter(news -> newsId.equals(news.getId()))
-                .findFirst();
+    public Optional<NewsModel> readById(Long id) {
+        return Optional.of(readAll()
+                        .stream()
+                        .filter(newsModel -> id.equals(newsModel.getId()))
+                        .findFirst())
+                .orElse(null);
     }
 
     @Override
-    public NewsModel create(NewsModel model) {
-        List<NewsModel> newsModel = dataSource.getNews();
-        newsModel.sort(Comparator.comparing(NewsModel::getId));
-        if (!newsModel.isEmpty()) {
-            model.setId(newsModel.get(newsModel.size() - 1).getId() + 1);
-        } else {
-            model.setId(1L);
+    public NewsModel create(NewsModel entity) {
+        Long id = 1L;
+        if (!readAll().isEmpty()) {
+            id = readAll().get(readAll().size()-1).getId() + 1;
         }
-        newsModel.add(model);
-        return model;
+        LocalDateTime dateTime = LocalDateTime.parse(LocalDateTime.now().format(MY_FORMAT));
+        entity.setId(id);
+        entity.setCreateDate(dateTime);
+        entity.setLastUpdateDate(dateTime);
+        readAll().add(entity);
+        return entity;
     }
 
     @Override
-    public NewsModel update(NewsModel model) {
-        Optional<NewsModel> newsOptional = readById(model.getId());
-        if (newsOptional.isEmpty()) {
-            return null;
+    public NewsModel update(NewsModel entity) {
+        LocalDateTime dateTime = LocalDateTime.parse(LocalDateTime.now().format(MY_FORMAT));
+
+        int index = -1;
+        for (NewsModel newsModel: readAll()) {
+            if (Objects.equals(entity.getId(), newsModel.getId())) {
+                index = readAll().indexOf(newsModel);
+            }
         }
-        NewsModel newsModel = newsOptional.get();
-        newsModel.setTitle(model.getTitle());
-        newsModel.setContent(model.getContent());
-        newsModel.setLastUpdatedDate(model.getLastUpdatedDate());
-        newsModel.setAuthorId(model.getAuthorId());
-        return newsModel;
+
+        if (index>=0) {
+            readAll().get(index).setTitle(entity.getTitle());
+            readAll().get(index).setContent(entity.getContent());
+            readAll().get(index).setLastUpdateDate(dateTime);
+            readAll().get(index).setAuthorId(entity.getAuthorId());
+            return readAll().get(index);
+        }
+        return null;
     }
 
     @Override
-    public boolean deleteById(Long newsId) {
-        return readById(newsId)
-                .map(model -> dataSource.getNews().remove(model))
+    public boolean deleteById(Long id) {
+        return readById(id)
+                .map(newsModel -> readAll().remove(newsModel))
                 .orElse(false);
     }
 
     @Override
-    public boolean existById(Long newsId) {
-        return dataSource.getNews().stream().anyMatch(news -> newsId.equals(news.getId()));
+    public boolean existById(Long id) {
+        return readAll()
+                .stream()
+                .anyMatch(newsModel -> id.equals(newsModel.getId()));
     }
 }
