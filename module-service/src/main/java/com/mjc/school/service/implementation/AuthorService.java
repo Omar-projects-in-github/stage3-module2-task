@@ -1,7 +1,6 @@
 package com.mjc.school.service.implementation;
 
 import com.mjc.school.repository.BaseRepository;
-import com.mjc.school.repository.model.AuthorModel;
 import com.mjc.school.service.BaseService;
 import com.mjc.school.service.annotations.ValidatingAuthor;
 import com.mjc.school.service.annotations.ValidatingAuthorId;

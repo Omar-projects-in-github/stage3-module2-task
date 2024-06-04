@@ -1,7 +1,6 @@
 package com.mjc.school.service.mapper;
 
-import com.mjc.school.repository.model.AuthorModel;
-import com.mjc.school.repository.model.NewsModel;
+import com.mjc.school.repository.model.News;
 import com.mjc.school.service.dto.AuthorDtoRequest;
 import com.mjc.school.service.dto.AuthorDtoResponse;
 import com.mjc.school.service.dto.NewsDtoRequest;
@@ -15,13 +14,13 @@ import java.util.List;
 public interface Mapper {
     Mapper INSTANCE = Mappers.getMapper(Mapper.class);
 
-    NewsDtoResponse newsModelToNewsDto(NewsModel newsModel);
+    NewsDtoResponse newsModelToNewsDto(News news);
 
     @Mapping(target = "createDate", ignore = true)
     @Mapping(target = "lastUpdateDate", ignore = true)
-    NewsModel newsDtoToNewsModel(NewsDtoRequest newsDto);
+    News newsDtoToNewsModel(NewsDtoRequest newsDto);
 
-    List<NewsDtoResponse> newsModelListToNewsDtoList(List<NewsModel> newsModelList);
+    List<NewsDtoResponse> newsModelListToNewsDtoList(List<News> newsList);
 
     AuthorDtoResponse authorModelToAuthorDto(AuthorModel authorModel);
 

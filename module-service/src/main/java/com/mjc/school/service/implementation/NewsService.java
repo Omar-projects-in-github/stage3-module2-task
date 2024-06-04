@@ -1,8 +1,7 @@
 package com.mjc.school.service.implementation;
 
 import com.mjc.school.repository.BaseRepository;
-import com.mjc.school.repository.model.AuthorModel;
-import com.mjc.school.repository.model.NewsModel;
+import com.mjc.school.repository.model.News;
 import com.mjc.school.service.BaseService;
 import com.mjc.school.service.annotations.ValidatingNews;
 import com.mjc.school.service.annotations.ValidatingNewsId;
@@ -18,11 +17,11 @@ import java.util.Objects;
 
 @Service
 public class NewsService implements BaseService<NewsDtoRequest, NewsDtoResponse, Long> {
-    private final BaseRepository<NewsModel, Long> newsRepository;
+    private final BaseRepository<News, Long> newsRepository;
     private final BaseRepository<AuthorModel, Long> authorRepository;
 
     @Autowired
-    public NewsService(BaseRepository<NewsModel, Long> newsRepository,
+    public NewsService(BaseRepository<News, Long> newsRepository,
                        BaseRepository<AuthorModel, Long> authorRepository) {
         this.newsRepository = newsRepository;
         this.authorRepository = authorRepository;
@@ -46,8 +45,8 @@ public class NewsService implements BaseService<NewsDtoRequest, NewsDtoResponse,
     public NewsDtoResponse create(NewsDtoRequest createRequest) {
         for (AuthorModel authorModel: authorRepository.readAll()) {
             if (Objects.equals(createRequest.getAuthorId(), authorModel.getId())) {
-                NewsModel newsModel = newsRepository.create(MyMapper.INSTANCE.newsDtoToNewsModel(createRequest));
-                return MyMapper.INSTANCE.newsModelToNewsDto(newsModel);
+                News news = newsRepository.create(MyMapper.INSTANCE.newsDtoToNewsModel(createRequest));
+                return MyMapper.INSTANCE.newsModelToNewsDto(news);
             }
         }
         return null;
@@ -59,8 +58,8 @@ public class NewsService implements BaseService<NewsDtoRequest, NewsDtoResponse,
         for (AuthorModel authorModel: authorRepository.readAll()) {
             if (Objects.equals(updateRequest.getAuthorId(), authorModel.getId())
                     && readById(updateRequest.getId())!=null) {
-                NewsModel newsModel = newsRepository.update(MyMapper.INSTANCE.newsDtoToNewsModel(updateRequest));
-                return MyMapper.INSTANCE.newsModelToNewsDto(newsModel);
+                News news = newsRepository.update(MyMapper.INSTANCE.newsDtoToNewsModel(updateRequest));
+                return MyMapper.INSTANCE.newsModelToNewsDto(news);
             }
         }
         return null;
