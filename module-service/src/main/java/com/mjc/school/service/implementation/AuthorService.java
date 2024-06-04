@@ -1,64 +1,78 @@
 package com.mjc.school.service.implementation;
 
 import com.mjc.school.repository.BaseRepository;
+import com.mjc.school.repository.model.Author;
+import com.mjc.school.service.AuthorMapper;
 import com.mjc.school.service.BaseService;
-import com.mjc.school.service.annotations.ValidatingAuthor;
-import com.mjc.school.service.annotations.ValidatingAuthorId;
 import com.mjc.school.service.dto.AuthorDtoRequest;
 import com.mjc.school.service.dto.AuthorDtoResponse;
-import com.mjc.school.service.exception.Errors;
 import com.mjc.school.service.exception.NotFoundException;
+import com.mjc.school.service.validator.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+
+import static com.mjc.school.service.exception.ServiceErrorCode.AUTHOR_ID_DOES_NOT_EXIST;
 
 @Service
 public class AuthorService implements BaseService<AuthorDtoRequest, AuthorDtoResponse, Long> {
-    private final BaseRepository<AuthorModel, Long> authorRepository;
+
+    private final BaseRepository<Author, Long> authorRepository;
+    private final AuthorMapper mapper;
 
     @Autowired
-    public AuthorService(BaseRepository<AuthorModel, Long> authorRepository) {
+    public AuthorService(BaseRepository<Author, Long> authorRepository, AuthorMapper mapper) {
         this.authorRepository = authorRepository;
+        this.mapper = mapper;
     }
 
     @Override
     public List<AuthorDtoResponse> readAll() {
-        return MyMapper.INSTANCE.authorModelListToauthorDtoList(authorRepository.readAll());
+        return mapper.modelListToDtoList(authorRepository.readAll());
     }
 
-    @ValidatingAuthorId
     @Override
     public AuthorDtoResponse readById(Long id) {
-        return authorRepository.readById(id)
-                .map(MyMapper.INSTANCE::authorModelToAuthorDto)
-                .orElseThrow(() -> new NotFoundException(Errors.ERROR_AUTHOR_ID_NOT_EXIST.getErrorData(String.valueOf(id), true)));
+        return authorRepository
+                .readById(id)
+                .map(mapper::modelToDto)
+                .orElseThrow(
+                        () -> new NotFoundException(String.format(AUTHOR_ID_DOES_NOT_EXIST.getMessage(), id)));
     }
 
-    @ValidatingAuthor
     @Override
-    public AuthorDtoResponse create(AuthorDtoRequest createRequest) {
-        AuthorModel authorModel = authorRepository.create(MyMapper.INSTANCE.authorDtoToAuthorModel(createRequest));
-        return MyMapper.INSTANCE.authorModelToAuthorDto(authorModel);
+    public AuthorDtoResponse create(@Valid AuthorDtoRequest createRequest) {
+        Author model = mapper.dtoToModel(createRequest);
+        LocalDateTime date = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        model.setCreateDate(date);
+        model.setLastUpdatedDate(date);
+        model = authorRepository.create(model);
+        return mapper.modelToDto(model);
     }
 
-    @ValidatingAuthor
     @Override
-    public AuthorDtoResponse update(AuthorDtoRequest updateRequest) {
-        if (readById(updateRequest.getId())!=null) {
-            AuthorModel authorModel = authorRepository.update(MyMapper.INSTANCE.authorDtoToAuthorModel(updateRequest));
-            return MyMapper.INSTANCE.authorModelToAuthorDto(authorModel);
+    public AuthorDtoResponse update(@Valid AuthorDtoRequest updateRequest) {
+        if (authorRepository.existById(updateRequest.id())) {
+            Author model = mapper.dtoToModel(updateRequest);
+            LocalDateTime date = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            model.setLastUpdatedDate(date);
+            model = authorRepository.update(model);
+            return mapper.modelToDto(model);
+        } else {
+            throw new NotFoundException(
+                    String.format(AUTHOR_ID_DOES_NOT_EXIST.getMessage(), updateRequest.id()));
         }
-        return null;
     }
 
-    @ValidatingAuthorId
     @Override
     public boolean deleteById(Long id) {
-        if (readById(id)!=null) {
+        if (authorRepository.existById(id)) {
             return authorRepository.deleteById(id);
         } else {
-            return false;
+            throw new NotFoundException(String.format(AUTHOR_ID_DOES_NOT_EXIST.getMessage(), id));
         }
     }
 }

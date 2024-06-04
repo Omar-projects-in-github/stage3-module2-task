@@ -7,7 +7,6 @@ import com.mjc.school.service.dto.AuthorDtoRequest;
 import com.mjc.school.service.dto.AuthorDtoResponse;
 import com.mjc.school.service.dto.NewsDtoRequest;
 import com.mjc.school.service.dto.NewsDtoResponse;
-import com.mjc.school.service.exception.Errors;
 import com.mjc.school.service.exception.NotFoundException;
 import com.mjc.school.service.exception.ValidatorException;
 import com.mjc.school.service.validator.Validator;

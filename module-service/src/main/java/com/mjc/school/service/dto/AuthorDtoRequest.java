@@ -1,34 +1,16 @@
 package com.mjc.school.service.dto;
 
-public class AuthorDtoRequest {
-    private Long id;
-    private String name;
+import com.mjc.school.service.validator.constraint.Max;
+import com.mjc.school.service.validator.constraint.Min;
+import com.mjc.school.service.validator.constraint.NotNull;
+import com.mjc.school.service.validator.constraint.Size;
 
-    public AuthorDtoRequest() {
-    }
+public record AuthorDtoRequest(
+        @Min(1)
+        @Max(Long.MAX_VALUE)
+        Long id,
 
-    public AuthorDtoRequest(String name) {
-        this.name = name;
-    }
-
-    public AuthorDtoRequest(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+        @NotNull
+        @Size(min = 3, max = 15)
+        String name) {
 }

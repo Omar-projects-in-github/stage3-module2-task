@@ -1,77 +1,96 @@
 package com.mjc.school.service.implementation;
 
 import com.mjc.school.repository.BaseRepository;
+import com.mjc.school.repository.model.Author;
 import com.mjc.school.repository.model.News;
 import com.mjc.school.service.BaseService;
-import com.mjc.school.service.annotations.ValidatingNews;
-import com.mjc.school.service.annotations.ValidatingNewsId;
+import com.mjc.school.service.NewsMapper;
 import com.mjc.school.service.dto.NewsDtoRequest;
 import com.mjc.school.service.dto.NewsDtoResponse;
-import com.mjc.school.service.exception.Errors;
 import com.mjc.school.service.exception.NotFoundException;
+import com.mjc.school.service.validator.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
+import static com.mjc.school.service.exception.ServiceErrorCode.AUTHOR_ID_DOES_NOT_EXIST;
+import static com.mjc.school.service.exception.ServiceErrorCode.NEWS_ID_DOES_NOT_EXIST;
+
 @Service
 public class NewsService implements BaseService<NewsDtoRequest, NewsDtoResponse, Long> {
+
     private final BaseRepository<News, Long> newsRepository;
-    private final BaseRepository<AuthorModel, Long> authorRepository;
+    private final BaseRepository<Author, Long> authorRepository;
+    private final NewsMapper mapper;
 
     @Autowired
-    public NewsService(BaseRepository<News, Long> newsRepository,
-                       BaseRepository<AuthorModel, Long> authorRepository) {
+    public NewsService(
+            final BaseRepository<News, Long> newsRepository,
+            final BaseRepository<Author, Long> authorRepository,
+            final NewsMapper mapper) {
         this.newsRepository = newsRepository;
         this.authorRepository = authorRepository;
+        this.mapper = mapper;
     }
 
     @Override
     public List<NewsDtoResponse> readAll() {
-        return MyMapper.INSTANCE.newsModelListToNewsDtoList(newsRepository.readAll());
+        return mapper.modelListToDtoList(newsRepository.readAll());
     }
 
-    @ValidatingNewsId
     @Override
-    public NewsDtoResponse readById(Long id) {
-        return newsRepository.readById(id)
-                .map(MyMapper.INSTANCE::newsModelToNewsDto)
-                .orElseThrow(() -> new NotFoundException(Errors.ERROR_NEWS_ID_NOT_EXIST.getErrorData(String.valueOf(id), true)));
+    public NewsDtoResponse readById(final Long id) {
+        return newsRepository
+                .readById(id)
+                .map(mapper::modelToDto)
+                .orElseThrow(
+                        () -> new NotFoundException(String.format(NEWS_ID_DOES_NOT_EXIST.getMessage(), id)));
     }
 
-    @ValidatingNews
     @Override
-    public NewsDtoResponse create(NewsDtoRequest createRequest) {
-        for (AuthorModel authorModel: authorRepository.readAll()) {
-            if (Objects.equals(createRequest.getAuthorId(), authorModel.getId())) {
-                News news = newsRepository.create(MyMapper.INSTANCE.newsDtoToNewsModel(createRequest));
-                return MyMapper.INSTANCE.newsModelToNewsDto(news);
-            }
+    public NewsDtoResponse create(@Valid NewsDtoRequest createRequest) {
+        if (authorRepository.existById(createRequest.authorId())) {
+            News model = mapper.dtoToModel(createRequest);
+            LocalDateTime date = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            model.setCreateDate(date);
+            model.setLastUpdatedDate(date);
+            model = newsRepository.create(model);
+            return mapper.modelToDto(model);
+        } else {
+            throw new NotFoundException(
+                    String.format(AUTHOR_ID_DOES_NOT_EXIST.getMessage(), createRequest.authorId()));
         }
-        return null;
     }
 
-    @ValidatingNews
     @Override
-    public NewsDtoResponse update(NewsDtoRequest updateRequest) {
-        for (AuthorModel authorModel: authorRepository.readAll()) {
-            if (Objects.equals(updateRequest.getAuthorId(), authorModel.getId())
-                    && readById(updateRequest.getId())!=null) {
-                News news = newsRepository.update(MyMapper.INSTANCE.newsDtoToNewsModel(updateRequest));
-                return MyMapper.INSTANCE.newsModelToNewsDto(news);
+    public NewsDtoResponse update(@Valid NewsDtoRequest updateRequest) {
+        if (authorRepository.existById(updateRequest.authorId())) {
+            if (newsRepository.existById(updateRequest.id())) {
+                News model = mapper.dtoToModel(updateRequest);
+                LocalDateTime date = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+                model.setLastUpdatedDate(date);
+                model = newsRepository.update(model);
+                return mapper.modelToDto(model);
+            } else {
+                throw new NotFoundException(
+                        String.format(NEWS_ID_DOES_NOT_EXIST.getMessage(), updateRequest.id()));
             }
+        } else {
+            throw new NotFoundException(
+                    String.format(AUTHOR_ID_DOES_NOT_EXIST.getMessage(), updateRequest.authorId()));
         }
-        return null;
     }
 
-    @ValidatingNewsId
     @Override
     public boolean deleteById(Long id) {
-        if (readById(id)!=null) {
+        if (newsRepository.existById(id)) {
             return newsRepository.deleteById(id);
         } else {
-            return false;
+            throw new NotFoundException(String.format(NEWS_ID_DOES_NOT_EXIST.getMessage(), id));
         }
     }
 }
