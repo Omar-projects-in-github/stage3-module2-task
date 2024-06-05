@@ -1,4 +1,4 @@
-package com.mjc.school.service.exception;
+package com.mjc.school.service.exceptions;
 
 public class ValidatorException extends RuntimeException {
     private static final long serialVersionUID = 1L;

@@ -1,4 +1,4 @@
-package com.mjc.school.service.exception;
+package com.mjc.school.service.exceptions;
 
 public enum ServiceErrorCode {
     NEWS_ID_DOES_NOT_EXIST(Constants.ERROR_000001, "News with id %d does not exist."),

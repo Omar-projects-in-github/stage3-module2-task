@@ -1,9 +1,7 @@
-package com.mjc.school.service.aspects;
+package com.mjc.school.service.aspect;
 
-import com.mjc.school.service.dto.AuthorDtoRequest;
-import com.mjc.school.service.dto.NewsDtoRequest;
-import com.mjc.school.service.exception.ServiceErrorCode;
-import com.mjc.school.service.exception.ValidatorException;
+import com.mjc.school.service.exceptions.ServiceErrorCode;
+import com.mjc.school.service.exceptions.ValidatorException;
 import com.mjc.school.service.validator.ConstraintViolation;
 import com.mjc.school.service.validator.Valid;
 import com.mjc.school.service.validator.Validator;
